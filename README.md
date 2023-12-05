@@ -1,30 +1,28 @@
-# React + TypeScript + Vite
+# Vite Rerunning hooks on edits
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+## Steps to reproduce
+1. run `yarn install`
+2. run `yarn run dev`
+3. Open Developer console, there should be two logs of "useEffect: 0" since strictmode is enabled.
+4. Go to src\App.tsx and edit "Vite + React" to any other text ex. "Vite + React + Typescript"
+5. Check the console again and there is a 3rd log of "useEffect: 0"
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Expanding the ESLint configuration
+The hook was reran even though there were no changes inside the hook. 
+This is a problem because I have a hook that fetches data from an API on url change and it reruns the hook even though the url did not change.
+It wipes out my local state due to the refetch and causes me to have to fill out the state again.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+The only way around this is to use a ref and reimplement what a hook already does for us:
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
 ```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+const countRef = useRef(count);
+ 
+ useEffect(() => {
+    if(count !==  countRef.current) {
+    {
+       countRef.current = count;
+       console.log('useEffect: ' + count);
+    }
+  }, [count]);
+```
